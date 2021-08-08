@@ -43,12 +43,16 @@ class CustomPlayer(DataPlayer):
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
         import random
-        self.queue.put(random.choice(state.actions()))
+        if state.ply_count < 2:
+            self.queue.put(random.choice(state.actions()))
+        else:
+            self.queue.put(self.heuristic_alpha_beta_search(state))
 
-    def heuristic_alpha_beta_search(self, state, depth=4):
+    def heuristic_alpha_beta_search(self, state, depth=5):
         alpha = float("inf")
         beta = float("inf")
-        best_score = None
+        best_score = float("-inf")
+        best_move = None
 
         def min_value(state, depth, alpha, beta):
             if state.terminal_test():
@@ -57,7 +61,10 @@ class CustomPlayer(DataPlayer):
                 return self.score(state)
             value = float("inf")
             for action in state.actions():
-                value = min(value, max_value(state.result(action), depth - 1), alpha, beta)
+                value = min(value, max_value(state.result(action), depth - 1, alpha, beta))
+                if value <= alpha:
+                    return value
+                beta = min(beta, value)
             return value
 
         def max_value(state, depth, alpha, beta):
@@ -67,25 +74,18 @@ class CustomPlayer(DataPlayer):
                 return self.score(state)
             value = float("-inf")
             for action in state.actions():
-                value = max(value, min_value(state.result(action), depth - 1), alpha, beta)
+                value = max(value, min_value(state.result(action), depth - 1, alpha, beta))
                 if value >= beta:
                     return value
-                alpha = max(alpha, value)
             return value
 
-        max(state.actions(), key=lambda x: min_value(state.result(x), depth - 1))
         for action in state.actions():
-            value = min_value(state.result(action), alpha, beta)
+            value = min_value(state.result(action), depth, alpha, beta)
             alpha = max(alpha, value)
-            if value > best_score:
+            if value >= best_score:
                 best_score = value
                 best_move = action
-        return value
-
-    def book_create(self, state, depth=4):
-        action = self.heuristic_my_moves_opp_moves(state.actions())
-
-        return action
+        return best_move
 
     def score(self, state):
         own_loc = state.locs[self.player_id]
