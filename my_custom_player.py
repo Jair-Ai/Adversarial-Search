@@ -1,4 +1,3 @@
-
 from sample_players import DataPlayer
 
 
@@ -19,6 +18,7 @@ class CustomPlayer(DataPlayer):
       any pickleable object to the self.context attribute.
     **********************************************************************
     """
+
     def get_action(self, state):
         """ Employ an adversarial search technique to choose an action
         available in the current state calls self.queue.put(ACTION) at least
@@ -44,3 +44,52 @@ class CustomPlayer(DataPlayer):
         #          (the timer is automatically managed for you)
         import random
         self.queue.put(random.choice(state.actions()))
+
+    def heuristic_alpha_beta_search(self, state, depth=4):
+        alpha = float("inf")
+        beta = float("inf")
+        best_score = None
+
+        def min_value(state, depth, alpha, beta):
+            if state.terminal_test():
+                return state.utility(self.player_id)
+            if depth <= 0:
+                return self.score(state)
+            value = float("inf")
+            for action in state.actions():
+                value = min(value, max_value(state.result(action), depth - 1), alpha, beta)
+            return value
+
+        def max_value(state, depth, alpha, beta):
+            if state.terminal_test():
+                return state.utility(self.player_id)
+            if depth <= 0:
+                return self.score(state)
+            value = float("-inf")
+            for action in state.actions():
+                value = max(value, min_value(state.result(action), depth - 1), alpha, beta)
+                if value >= beta:
+                    return value
+                alpha = max(alpha, value)
+            return value
+
+        max(state.actions(), key=lambda x: min_value(state.result(x), depth - 1))
+        for action in state.actions():
+            value = min_value(state.result(action), alpha, beta)
+            alpha = max(alpha, value)
+            if value > best_score:
+                best_score = value
+                best_move = action
+        return value
+
+    def book_create(self, state, depth=4):
+        action = self.heuristic_my_moves_opp_moves(state.actions())
+
+        return action
+
+    def score(self, state):
+        own_loc = state.locs[self.player_id]
+        opp_loc = state.locs[1 - self.player_id]
+        own_liberties = state.liberties(own_loc)
+        opp_liberties = state.liberties(opp_loc)
+        return len(own_liberties) - len(opp_liberties)
