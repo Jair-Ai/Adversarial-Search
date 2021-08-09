@@ -1,26 +1,4 @@
-import signal
-from contextlib import contextmanager
 from sample_players import DataPlayer
-
-TIME_LIMITED = 0.150
-MAX_DEPTH = 20
-
-
-class TimeoutException(Exception):
-    pass
-
-
-@contextmanager
-def time_limit(miliseconds):
-    def signal_handler(signum, frame):
-        raise TimeoutException("Timed out!")
-
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.setitimer(signal.ITIMER_REAL, 0.15, 0.15)
-    try:
-        yield
-    finally:
-        signal.setitimer(signal.ITIMER_REAL, 0)
 
 
 class CustomPlayer(DataPlayer):
@@ -52,7 +30,7 @@ class CustomPlayer(DataPlayer):
         See RandomPlayer and GreedyPlayer in sample_players for more examples.
 
         **********************************************************************
-        NOTE:
+        NOTE: 
         - The caller is responsible for cutting off search, so calling
           get_action() from your own code will create an infinite loop!
           Refer to (and use!) the Isolation.play() function to run games.
@@ -68,22 +46,11 @@ class CustomPlayer(DataPlayer):
         if state.ply_count < 2:
             self.queue.put(random.choice(state.actions()))
         else:
-
-            self.queue.put(self.deepening(state))
-
-    def deepening(self, state):
-        try:
-            with time_limit(TIME_LIMITED):
-                for depth in range(1, MAX_DEPTH):
-                    best_move = self.heuristic_alpha_beta_search(state, depth=depth)
-        except TimeoutException as e:
-            #print("Timed out on iter = ", depth)
-            pass
-        return best_move
+            self.queue.put(self.heuristic_alpha_beta_search(state))
 
     def heuristic_alpha_beta_search(self, state, depth=5):
         alpha = float("inf")
-        beta = float("inf")
+        beta = float("i
         best_score = float("-inf")
         best_move = None
 
