@@ -50,7 +50,7 @@ class CustomPlayer(DataPlayer):
 
     def heuristic_alpha_beta_search(self, state, depth=5):
         alpha = float("inf")
-        beta = float("i
+        beta = float("inf")
         best_score = float("-inf")
         best_move = None
 
