@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from sample_players import DataPlayer
 
 TIME_LIMITED = 0.150
-MAX_DEPTH = 20
+MAX_DEPTH = 3
 
 
 class TimeoutException(Exception):
@@ -73,12 +73,12 @@ class CustomPlayer(DataPlayer):
 
     def deepening(self, state):
         try:
-            with time_limit(TIME_LIMITED):
-                for depth in range(1, MAX_DEPTH):
-                    best_move = self.heuristic_alpha_beta_search(state, depth=depth)
+            for depth in range(1, MAX_DEPTH):
+                best_move = self.heuristic_alpha_beta_search(state, depth=depth)
         except TimeoutException as e:
             #print("Timed out on iter = ", depth)
             pass
+        #print(f"retornando este cara {best_move}, depht de {depth}")
         return best_move
 
     def heuristic_alpha_beta_search(self, state, depth=5):
